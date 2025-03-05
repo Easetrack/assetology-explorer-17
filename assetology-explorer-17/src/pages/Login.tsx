@@ -1,6 +1,6 @@
+// ในหน้า Login.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth"; // นำเข้า useAuth hook
 import {
   Card,
   CardContent,
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Lock, User, Building } from "lucide-react";
+// import { departments } from './departments';  // หรือนำเข้าจากไฟล์อื่น
+import useLocation from "@/hooks/useLocation"; // นำเข้า useLocation hook
 
 const departments = [
   { id: "it", name: "Information Technology" },
@@ -32,13 +34,17 @@ const departments = [
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // ใช้ useAuth hook เพื่อเข้าถึงฟังก์ชัน login
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
     department: "",
+    location: "", // เพิ่ม location
   });
+
+  // ใช้ useLocation hook ที่เราสร้างไว้
+  const { locations, loading, error } = useLocation();
+  const locationList = locations || [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,32 +55,46 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, department: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLocationChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, location: value })); // อัพเดตข้อมูล location
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     // Validate form
-    if (!formData.username || !formData.password || !formData.department) {
+    if (
+      !formData.username ||
+      !formData.password ||
+      !formData.department 
+      // !formData.location
+    ) {
       toast.error("Please fill in all fields");
       setIsLoading(false);
       return;
     }
 
-    try {
-      // เรียกใช้ login function จาก useAuth hook
-      await login(formData.username, formData.password);
+    // Simple authentication simulation - in a real app, you'd call an API here
+    setTimeout(() => {
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          username: formData.username,
+          department: formData.department,
+          location: formData.location, // เก็บ location ลงใน localStorage
+        })
+      );
 
-      // หากล็อกอินสำเร็จ
       toast.success("Login successful");
-      localStorage.setItem("user", JSON.stringify(formData)); // เก็บข้อมูลผู้ใช้
-      navigate("/"); // นำทางไปที่หน้าแรก
-    } catch (error) {
-      // หากเกิดข้อผิดพลาด
-      toast.error(error.message || "Login failed");
-    } finally {
-      setIsLoading(false); // หมดสถานะโหลด
-    }
+      navigate("/");
+      setIsLoading(false);
+    }, 1500);
   };
+
+  // ถ้ามีข้อผิดพลาดหรือยังโหลดข้อมูลไม่เสร็จ ให้แสดงข้อความหรือทำอะไรบางอย่าง
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
@@ -133,10 +153,7 @@ const Login = () => {
                 <Label htmlFor="department">Department</Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
-                  <Select
-                    value={formData.department}
-                    onValueChange={handleDepartmentChange}
-                  >
+                  <Select value={formData.department} onValueChange={handleDepartmentChange}>
                     <SelectTrigger id="department" className="pl-10">
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
@@ -150,6 +167,38 @@ const Login = () => {
                   </Select>
                 </div>
               </div>
+
+              {/* เพิ่มส่วนของ Location */}
+              {/* <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+                  <Select
+                    value={formData.location}
+                    onValueChange={handleLocationChange}
+                  >
+                    <SelectTrigger id="location" className="pl-10">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations && locations.length > 0 ? (
+                        locations.map((location) => (
+                          <SelectItem
+                            key={location.id}
+                            value={location.id || "default"}
+                          >
+                            {location.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="default" disabled>
+                          No locations available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div> */}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign in"}
@@ -167,7 +216,7 @@ const Login = () => {
               </a>
             </div>
             <div className="text-xs text-center text-muted-foreground">
-              Version 1.0.1 &copy; {new Date().getFullYear()} Asset Management Copy right by SRP
+              Version 1.0.0 &copy; {new Date().getFullYear()} Asset Management
               System
             </div>
           </CardFooter>
