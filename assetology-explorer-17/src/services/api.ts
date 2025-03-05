@@ -13,7 +13,6 @@ export const getLocations = async () => {
   }
 };
 
-
 const departments = [
   { id: "it", name: "Information Technology" },
   { id: "finance", name: "Finance" },
