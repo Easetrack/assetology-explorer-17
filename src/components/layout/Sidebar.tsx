@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,6 +19,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { getAppSettings } from '../../utils/helpers';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -27,6 +28,26 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
   const location = useLocation();
+  const [appName, setAppName] = useState('Assetology');
+  const [appLogo, setAppLogo] = useState<string | null>(null);
+  const [username, setUsername] = useState('AB');
+  const [userRole, setUserRole] = useState('Administrator');
+  
+  // Load app settings and user data
+  useEffect(() => {
+    const settings = getAppSettings();
+    if (settings) {
+      setAppName(settings.appName || 'Assetology');
+      setAppLogo(settings.logo);
+    }
+    
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUsername(user.username || 'AB');
+      setUserRole(user.role || 'Administrator');
+    }
+  }, []);
   
   // Close sidebar on mobile when route changes
   useEffect(() => {
@@ -83,6 +104,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
     },
   ];
 
+  // Create initials for user avatar
+  const getInitials = (name: string) => {
+    if (!name) return 'AB';
+    const names = name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0].charAt(0)}${names[1].charAt(0)}`;
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
   // Mobile sidebar component
   const MobileSidebar = () => (
     <Sheet>
@@ -95,10 +126,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
       <SheetContent side="left" className="p-0 w-[250px]">
         <div className="flex h-16 items-center justify-between px-4 py-4 border-b border-sidebar-border/20">
           <div className="flex items-center gap-2 font-medium">
-            <div className="h-8 w-8 rounded-md bg-white text-sidebar flex items-center justify-center">
-              <span className="font-bold text-lg">A</span>
+            <div className="h-8 w-8 rounded-md bg-white text-sidebar flex items-center justify-center overflow-hidden">
+              {appLogo ? (
+                <img src={appLogo} alt={appName} className="h-full w-full object-contain" />
+              ) : (
+                <span className="font-bold text-lg">{appName.charAt(0)}</span>
+              )}
             </div>
-            <span className="text-lg">Assetology</span>
+            <span className="text-lg">{appName}</span>
           </div>
         </div>
         
@@ -148,10 +183,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
       <aside className={`fixed inset-y-0 left-0 z-30 hidden md:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-[70px]'}`}>
         <div className="flex h-16 items-center justify-between px-4 py-4 border-b border-sidebar-border/20">
           <div className={`flex items-center gap-2 font-medium ${isOpen ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
-            <div className="h-8 w-8 rounded-md bg-white text-sidebar flex items-center justify-center">
-              <span className="font-bold text-lg">A</span>
+            <div className="h-8 w-8 rounded-md bg-white text-sidebar flex items-center justify-center overflow-hidden">
+              {appLogo ? (
+                <img src={appLogo} alt={appName} className="h-full w-full object-contain" />
+              ) : (
+                <span className="font-bold text-lg">{appName.charAt(0)}</span>
+              )}
             </div>
-            <span className="text-lg">Assetology</span>
+            <span className="text-lg">{appName}</span>
           </div>
           
           <Button 
@@ -203,12 +242,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
         <div className="p-4 border-t border-sidebar-border/20 mt-auto">
           <div className={`flex items-center gap-3 ${isOpen ? 'justify-start' : 'justify-center'}`}>
             <div className="h-8 w-8 bg-white text-sidebar rounded-full flex items-center justify-center">
-              <span className="font-medium">AB</span>
+              <span className="font-medium">{getInitials(username)}</span>
             </div>
             {isOpen && (
               <div className="overflow-hidden">
-                <p className="text-sm font-medium truncate">Alex Bailey</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">Administrator</p>
+                <p className="text-sm font-medium truncate">{username}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{userRole}</p>
               </div>
             )}
           </div>

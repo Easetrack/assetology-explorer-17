@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { getAppSettings } from '../../utils/helpers';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -26,11 +27,24 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     if (userData) {
       setUser(JSON.parse(userData));
     }
+
+    // Check for dark mode setting
+    const settings = getAppSettings();
+    if (settings?.theme === 'dark') {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
   }, []);
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
     document.documentElement.classList.toggle('dark');
+    
+    // Save theme preference
+    const settings = getAppSettings();
+    const updatedSettings = { ...settings, theme: newMode ? 'dark' : 'light' };
+    localStorage.setItem('appSettings', JSON.stringify(updatedSettings));
   };
 
   const handleLogout = () => {
