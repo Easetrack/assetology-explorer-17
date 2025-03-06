@@ -31,11 +31,27 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Filter, Search, MoreHorizontal } from 'lucide-react';
+import { 
+  Plus, 
+  Download, 
+  Filter, 
+  Search, 
+  MoreHorizontal, 
+  ChevronLeft, 
+  ChevronRight 
+} from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const AssetRegister = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Close sidebar on mobile automatically
   useEffect(() => {
@@ -106,8 +122,94 @@ const AssetRegister = () => {
       status: 'Active',
       purchaseDate: '2023-01-15',
       value: '$2,100.00'
+    },
+    // Adding more sample data to demonstrate pagination
+    {
+      id: 'AST-006',
+      name: 'HP LaserJet Printer',
+      category: 'IT Equipment',
+      location: 'HQ - Floor 1',
+      status: 'Active',
+      purchaseDate: '2023-02-10',
+      value: '$599.00'
+    },
+    {
+      id: 'AST-007',
+      name: 'Executive Chair',
+      category: 'Furniture',
+      location: 'HQ - Floor 3',
+      status: 'Active',
+      purchaseDate: '2022-09-05',
+      value: '$349.00'
+    },
+    {
+      id: 'AST-008',
+      name: 'Samsung Smart TV 65"',
+      category: 'IT Equipment',
+      location: 'HQ - Conference Room',
+      status: 'Active',
+      purchaseDate: '2023-03-20',
+      value: '$1,200.00'
+    },
+    {
+      id: 'AST-009',
+      name: 'Company Van',
+      category: 'Vehicle',
+      location: 'HQ - Parking Bay 4',
+      status: 'Maintenance',
+      purchaseDate: '2021-06-15',
+      value: '$35,000.00'
+    },
+    {
+      id: 'AST-010',
+      name: 'Network Switch',
+      category: 'IT Equipment',
+      location: 'HQ - Server Room',
+      status: 'Active',
+      purchaseDate: '2023-01-05',
+      value: '$1,500.00'
+    },
+    {
+      id: 'AST-011',
+      name: 'Filing Cabinet',
+      category: 'Furniture',
+      location: 'HQ - Floor 2',
+      status: 'Active',
+      purchaseDate: '2022-10-12',
+      value: '$250.00'
+    },
+    {
+      id: 'AST-012',
+      name: 'iPad Pro',
+      category: 'IT Equipment',
+      location: 'HQ - Floor 3',
+      status: 'In Transit',
+      purchaseDate: '2023-04-10',
+      value: '$1,099.00'
     }
   ];
+
+  // Calculate total pages
+  const totalPages = Math.ceil(assetData.length / pageSize);
+  
+  // Get current assets for the page
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return assetData.slice(startIndex, startIndex + pageSize);
+  };
+
+  // Handle page changes
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (value) => {
+    setPageSize(Number(value));
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -262,7 +364,7 @@ const AssetRegister = () => {
                     </TableHeader>
                     
                     <TableBody>
-                      {assetData.map((asset) => (
+                      {getCurrentPageData().map((asset) => (
                         <TableRow key={asset.id}>
                           <TableCell className="font-medium">{asset.id}</TableCell>
                           <TableCell>{asset.name}</TableCell>
@@ -272,9 +374,18 @@ const AssetRegister = () => {
                           <TableCell>{asset.purchaseDate}</TableCell>
                           <TableCell>{asset.value}</TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem>Delete</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -282,6 +393,50 @@ const AssetRegister = () => {
                   </Table>
                 </div>
               </ScrollArea>
+              
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between mt-6">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">Rows per page:</p>
+                  <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                    <SelectTrigger className="h-8 w-[70px]">
+                      <SelectValue placeholder={pageSize.toString()} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                  <div className="flex items-center">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 ml-2"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </main>
