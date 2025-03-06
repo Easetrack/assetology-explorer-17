@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -8,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { getAppSettings, saveAppSettings } from "../utils/helpers";
+import { Shield } from "lucide-react";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [appName, setAppName] = useState('Assetology');
   const [logo, setLogo] = useState<string | null>(null);
   const [previewLogo, setPreviewLogo] = useState<string | null>(null);
@@ -24,6 +28,35 @@ const Settings = () => {
   const [email, setEmail] = useState('alex.bailey@example.com');
   const [jobTitle, setJobTitle] = useState('Administrator');
   const [department, setDepartment] = useState('IT & Operations');
+
+  // Permission fields
+  const [permissions, setPermissions] = useState({
+    assetRegister: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: true,
+    },
+    assetReceived: {
+      view: true,
+      create: true,
+      edit: false,
+      delete: false,
+    },
+    assetAssessment: {
+      view: true,
+      create: false,
+      edit: false,
+      delete: false,
+    },
+    reports: {
+      view: true,
+      export: true,
+    },
+    settings: {
+      access: true,
+    }
+  });
 
   useEffect(() => {
     // Load settings from localStorage
@@ -67,6 +100,20 @@ const Settings = () => {
     document.documentElement.classList.toggle('dark', newMode);
   };
 
+  const handlePermissionChange = (
+    section: string, 
+    permission: string, 
+    checked: boolean
+  ) => {
+    setPermissions(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section as keyof typeof prev],
+        [permission]: checked
+      }
+    }));
+  };
+
   const handleSaveChanges = () => {
     // Save app settings
     saveAppSettings({
@@ -86,7 +133,13 @@ const Settings = () => {
       }));
     }
 
+    // Store permissions in localStorage for demo purposes
+    localStorage.setItem('userPermissions', JSON.stringify(permissions));
+
     toast.success('Settings saved successfully');
+    
+    // Navigate to dashboard
+    navigate('/');
   };
 
   return (
@@ -100,10 +153,11 @@ const Settings = () => {
         <Separator />
         
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-6 lg:w-[720px]">
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="permissions">Permissions</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>
           </TabsList>
@@ -240,6 +294,194 @@ const Settings = () => {
                       value={department} 
                       onChange={(e) => setDepartment(e.target.value)} 
                     />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="permissions" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  <span>Permissions Settings</span>
+                </CardTitle>
+                <CardDescription>
+                  Configure access permissions for different modules and features.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Asset Register Permissions */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Asset Register</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-register-view" 
+                          checked={permissions.assetRegister.view}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetRegister', 'view', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-register-view">View Assets</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-register-create" 
+                          checked={permissions.assetRegister.create}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetRegister', 'create', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-register-create">Create Assets</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-register-edit" 
+                          checked={permissions.assetRegister.edit}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetRegister', 'edit', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-register-edit">Edit Assets</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-register-delete" 
+                          checked={permissions.assetRegister.delete}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetRegister', 'delete', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-register-delete">Delete Assets</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Asset Received Permissions */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Asset Received</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-received-view" 
+                          checked={permissions.assetReceived.view}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetReceived', 'view', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-received-view">View Asset Receipts</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-received-create" 
+                          checked={permissions.assetReceived.create}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetReceived', 'create', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-received-create">Create Receipts</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-received-edit" 
+                          checked={permissions.assetReceived.edit}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetReceived', 'edit', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-received-edit">Edit Receipts</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-received-delete" 
+                          checked={permissions.assetReceived.delete}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetReceived', 'delete', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-received-delete">Delete Receipts</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Asset Assessment Permissions */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Asset Assessment</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-assessment-view" 
+                          checked={permissions.assetAssessment.view}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetAssessment', 'view', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-assessment-view">View Assessments</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="asset-assessment-create" 
+                          checked={permissions.assetAssessment.create}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('assetAssessment', 'create', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="asset-assessment-create">Create Assessments</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Reports Permissions */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Reports</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="reports-view" 
+                          checked={permissions.reports.view}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('reports', 'view', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="reports-view">View Reports</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="reports-export" 
+                          checked={permissions.reports.export}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange('reports', 'export', checked as boolean)
+                          }
+                        />
+                        <Label htmlFor="reports-export">Export Reports</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Settings Access */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Settings</h3>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="settings-access" 
+                        checked={permissions.settings.access}
+                        onCheckedChange={(checked) => 
+                          handlePermissionChange('settings', 'access', checked as boolean)
+                        }
+                      />
+                      <Label htmlFor="settings-access">Access Settings</Label>
+                    </div>
                   </div>
                 </div>
               </CardContent>
