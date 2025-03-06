@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import AssetSummary from '@/components/dashboard/AssetSummary';
 import AssetDistribution from '@/components/dashboard/AssetDistribution';
+import AssetQuantityChart from '@/components/dashboard/AssetQuantityChart';
 import RecentActivities from '@/components/dashboard/RecentActivities';
 import PerformanceMetrics from '@/components/dashboard/PerformanceMetrics';
 import Header from '@/components/layout/Header';
@@ -354,10 +354,18 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="md:col-span-2 lg:col-span-1">
+              {/* Asset Distribution Chart */}
+              <div className="md:col-span-1">
                 <AssetDistribution />
               </div>
-              <div className="md:col-span-2 lg:col-span-2">
+              
+              {/* Asset Quantity Chart - Our new component */}
+              <div className="md:col-span-1">
+                <AssetQuantityChart />
+              </div>
+              
+              {/* Recent Activities */}
+              <div className="md:col-span-2 lg:col-span-1">
                 <RecentActivities />
               </div>
             </div>
