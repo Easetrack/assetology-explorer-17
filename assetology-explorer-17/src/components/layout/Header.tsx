@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bell, Search, User, Moon, Sun, LogOut } from 'lucide-react';
+import { Bell, Search, User, Moon, Sun, LogOut, Shield } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -19,14 +21,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = React.useState(false);
-  const [user, setUser] = React.useState<{username: string, department: string} | null>(null);
-
-  React.useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, []);
+  const { user, logout } = useAuth();
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -34,9 +29,25 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    logout();
     toast.success('Logged out successfully');
     navigate('/login');
+  };
+
+  // Function to get role badge color
+  const getRoleBadgeColor = (role: string | undefined) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-500 hover:bg-red-600';
+      case 'manager':
+        return 'bg-blue-500 hover:bg-blue-600';
+      case 'user':
+        return 'bg-green-500 hover:bg-green-600';
+      case 'guest':
+        return 'bg-gray-500 hover:bg-gray-600';
+      default:
+        return 'bg-gray-500 hover:bg-gray-600';
+    }
   };
 
   return (
@@ -86,8 +97,14 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                 <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
                   Signed in as <span className="font-semibold text-foreground">{user.username}</span>
                 </div>
-                <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                  Department: {user.department}
+                <div className="px-2 py-1.5 text-xs flex items-center gap-2">
+                  <span className="text-muted-foreground">Department: {user.department}</span>
+                </div>
+                <div className="px-2 py-1.5 text-xs flex items-center gap-2">
+                  <Shield className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Badge variant="outline" className={`text-white ${getRoleBadgeColor(user.role)}`}>
+                    {user.role}
+                  </Badge>
                 </div>
                 <DropdownMenuItem className="py-2 cursor-pointer" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
